@@ -1,0 +1,38 @@
+# Зависимости и сборка
+node_modules/
+dist/
+*.local
+
+# Переменные окружения (секреты не коммитить)
+.env
+.env.*
+!.env.example
+
+# Логи и кэш
+*.log
+npm-debug.log*
+.npm
+.cache
+
+# ОС
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Редакторы и IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Внутренние документы (не публиковать на GitHub — только README и код в репозитории)
+CONCEPT.md
+DEPLOY.md
+BOT_CONTENT.md
+GDD.md
+SPEC.md
+ARCHITECTURE.md
+DEV_STEPS.md
+STATUS.md
+ART_GUIDE.md
+AUDIO_GUIDE.md
+public/assets/ASSETS.md
