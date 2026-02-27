@@ -49,10 +49,18 @@ export default class MenuScene extends Phaser.Scene {
       this.sound.stopByKey('music_game');
       this.sound.stopByKey('music_win');
       this.sound.stopByKey('music_gameover');
-      if (!this.sound.get('music_menu')) {
-        this.sound.play('music_menu', { loop: true, volume: 0.7 });
-      }
+      this.sound.play('music_menu', { loop: true, volume: 0.7 });
     }
+
+    // Браузер может блокировать автовоспроизведение до первого взаимодействия — по первому тапу пробуем запустить музыку
+    const tryStartMusicOnFirstTap = () => {
+      if (!getMusicOn() || !this.cache.audio.exists('music_menu')) return;
+      const menuSound = this.sound.get('music_menu');
+      if (menuSound && menuSound.isPlaying) return;
+      this.sound.play('music_menu', { loop: true, volume: 0.7 });
+      this.input.off('pointerdown', tryStartMusicOnFirstTap);
+    };
+    this.input.once('pointerdown', tryStartMusicOnFirstTap);
 
     if (this.textures.exists('menu_bg')) {
       this.add.image(width / 2, height / 2, 'menu_bg').setOrigin(0.5).setDepth(-1);
@@ -186,7 +194,7 @@ export default class MenuScene extends Phaser.Scene {
         this.sound.stopByKey('music_game');
         this.sound.stopByKey('music_win');
         this.sound.stopByKey('music_gameover');
-      } else if (this.cache.audio.exists('music_menu') && !this.sound.get('music_menu')) {
+      } else if (this.cache.audio.exists('music_menu')) {
         this.sound.play('music_menu', { loop: true, volume: 0.7 });
       }
     });
@@ -237,16 +245,36 @@ export default class MenuScene extends Phaser.Scene {
   shareGame() {
     const url = typeof window !== 'undefined' && window.location ? window.location.href : '';
     const text = 'Разбитые сердца — ТАРАСА';
-    if (window.Telegram?.WebApp?.switchInlineQuery) {
-      window.Telegram.WebApp.switchInlineQuery(`${text} ${url}`);
-    } else if (navigator.share) {
+    const shareUrl = url || 'https://bogdanuz.github.io/broken-hearts/';
+
+    if (window.Telegram?.WebApp?.openLink) {
+      const tgShare = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+      window.Telegram.WebApp.openLink(tgShare);
+      return;
+    }
+    if (navigator.share) {
       navigator.share({
         title: 'Разбитые сердца',
         text,
-        url: url || undefined,
+        url: shareUrl,
       }).catch(() => {});
-    } else if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(url || text).catch(() => {});
+      return;
     }
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        this.showShareFeedback();
+      }).catch(() => {});
+    }
+  }
+
+  showShareFeedback() {
+    const { width, height } = this.cameras.main;
+    const msg = this.add.text(width / 2, height - 60, 'Ссылка скопирована', {
+      fontSize: '15px',
+      color: '#1a100e',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(100);
+    this.tweens.add({ targets: msg, alpha: 0, duration: 1500, delay: 1000 });
+    this.time.delayedCall(2600, () => msg.destroy());
   }
 }

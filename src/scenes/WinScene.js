@@ -266,12 +266,24 @@ export default class WinScene extends Phaser.Scene {
     this.shareGame = () => {
       const url = typeof window !== 'undefined' && window.location ? window.location.href : '';
       const text = 'Разбитые сердца — ТАРАСА';
-      if (window.Telegram?.WebApp?.switchInlineQuery) {
-        window.Telegram.WebApp.switchInlineQuery(`${text} ${url}`);
-      } else if (navigator.share) {
-        navigator.share({ title: 'Разбитые сердца', text, url: url || undefined }).catch(() => {});
-      } else if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(url || text).catch(() => {});
+      const shareUrl = url || 'https://bogdanuz.github.io/broken-hearts/';
+      if (window.Telegram?.WebApp?.openLink) {
+        const tgShare = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+        window.Telegram.WebApp.openLink(tgShare);
+        return;
+      }
+      if (navigator.share) {
+        navigator.share({ title: 'Разбитые сердца', text, url: shareUrl }).catch(() => {});
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          const msg = this.add.text(centerX, height / 2 + 140, 'Ссылка скопирована', {
+            fontSize: '14px', color: '#2c1810', fontStyle: 'bold',
+          }).setOrigin(0.5).setDepth(200);
+          this.tweens.add({ targets: msg, alpha: 0, duration: 1500, delay: 1000 });
+          this.time.delayedCall(2600, () => msg.destroy());
+        }).catch(() => {});
       }
     };
 
