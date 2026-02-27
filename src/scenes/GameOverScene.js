@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getMusicOn, getSfxOn } from '../utils/soundPrefs.js';
+import { getMusicOn, getSfxOn, stopAllMusic } from '../utils/soundPrefs.js';
 
 // Палитра сцены: тёплые тона комнаты + тёмный оверлей — контрастные, читаемые
 const TITLE_COLOR = '#c44a4a';           // заголовок «Игра окончена» — мягкий красный
@@ -37,10 +37,7 @@ export default class GameOverScene extends Phaser.Scene {
     const musicOn = getMusicOn();
     this.sfxOn = getSfxOn();
 
-    this.sound.stopByKey('music_menu');
-    this.sound.stopByKey('music_game');
-    this.sound.stopByKey('music_win');
-
+    stopAllMusic(this.sound);
     if (this.sfxOn && this.cache.audio.exists('sfx_gameover')) {
       this.sound.play('sfx_gameover');
     }

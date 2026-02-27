@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getMusicOn, getSfxOn } from '../utils/soundPrefs.js';
+import { getMusicOn, getSfxOn, stopAllMusic } from '../utils/soundPrefs.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -12,15 +12,9 @@ export default class GameScene extends Phaser.Scene {
     const musicOn = getMusicOn();
     this.sfxOn = getSfxOn();
 
-    // Меню-музыку всегда гасим при входе в игру
-    this.sound.stopByKey('music_menu');
-
+    stopAllMusic(this.sound);
     if (musicOn && this.cache.audio.exists('music_game')) {
-      this.sound.stopByKey('music_win');
-      this.sound.stopByKey('music_gameover');
-      if (!this.sound.get('music_game')) {
-        this.sound.play('music_game', { loop: true, volume: 0.8 });
-      }
+      this.sound.play('music_game', { loop: true, volume: 0.8 });
     }
 
     // --- Фон комнаты ---

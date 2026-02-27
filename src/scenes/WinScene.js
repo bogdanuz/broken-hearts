@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { getMusicOn, getSfxOn } from '../utils/soundPrefs.js';
+import { getMusicOn, getSfxOn, stopAllMusic } from '../utils/soundPrefs.js';
+import { SHARE_MESSAGE, SHARE_BOT_URL } from '../utils/shareText.js';
 
 // Палитра как в GameOver: читаемо и гармонично с комнатой
 const TITLE_COLOR = '#c4844a';
@@ -38,10 +39,7 @@ export default class WinScene extends Phaser.Scene {
     const musicOn = getMusicOn();
     this.sfxOn = getSfxOn();
 
-    this.sound.stopByKey('music_menu');
-    this.sound.stopByKey('music_game');
-    this.sound.stopByKey('music_gameover');
-
+    stopAllMusic(this.sound);
     if (this.sfxOn && this.cache.audio.exists('sfx_win')) {
       this.sound.play('sfx_win');
     }
@@ -264,20 +262,17 @@ export default class WinScene extends Phaser.Scene {
     };
 
     this.shareGame = () => {
-      const url = typeof window !== 'undefined' && window.location ? window.location.href : '';
-      const text = 'Разбитые сердца — ТАРАСА';
-      const shareUrl = url || 'https://bogdanuz.github.io/broken-hearts/';
       if (window.Telegram?.WebApp?.openLink) {
-        const tgShare = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+        const tgShare = `https://t.me/share/url?url=${encodeURIComponent(SHARE_BOT_URL)}&text=${encodeURIComponent('Мини-игра о паре, которой не бывать.')}`;
         window.Telegram.WebApp.openLink(tgShare);
         return;
       }
       if (navigator.share) {
-        navigator.share({ title: 'Разбитые сердца', text, url: shareUrl }).catch(() => {});
+        navigator.share({ title: 'Разбитые сердца', text: SHARE_MESSAGE }).catch(() => {});
         return;
       }
       if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(shareUrl).then(() => {
+        navigator.clipboard.writeText(SHARE_MESSAGE).then(() => {
           const msg = this.add.text(centerX, height / 2 + 140, 'Ссылка скопирована', {
             fontSize: '14px', color: '#2c1810', fontStyle: 'bold',
           }).setOrigin(0.5).setDepth(200);

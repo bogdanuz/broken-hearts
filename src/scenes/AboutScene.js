@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getMusicOn, getSfxOn } from '../utils/soundPrefs.js';
+import { getMusicOn, getSfxOn, stopAllMusic } from '../utils/soundPrefs.js';
 
 // Тёплая палитра под градиент: тёмные коричнево-красные, без чёрного — удобочитаемо и гармонично
 const TEXT_TITLE = '#2c1810';         // главный заголовок
@@ -73,10 +73,8 @@ export default class AboutScene extends Phaser.Scene {
     const musicOn = getMusicOn();
     const sfxOn = getSfxOn();
 
-    this.sound.stopByKey('music_game');
-    this.sound.stopByKey('music_win');
-    this.sound.stopByKey('music_gameover');
-    if (musicOn && this.cache.audio.exists('music_menu') && !this.sound.get('music_menu')) {
+    stopAllMusic(this.sound);
+    if (musicOn && this.cache.audio.exists('music_menu')) {
       this.sound.play('music_menu', { loop: true, volume: 0.7 });
     }
 

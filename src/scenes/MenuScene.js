@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { getMusicOn, getSfxOn, setMusicOn, setSfxOn } from '../utils/soundPrefs.js';
+import { getMusicOn, getSfxOn, setMusicOn, setSfxOn, stopAllMusic } from '../utils/soundPrefs.js';
+import { SHARE_MESSAGE, SHARE_BOT_URL } from '../utils/shareText.js';
 
 const PADDING = 32;
 const PANEL_RADIUS = 14;
@@ -45,18 +46,15 @@ export default class MenuScene extends Phaser.Scene {
     let musicOn = getMusicOn();
     let sfxOn = getSfxOn();
 
+    stopAllMusic(this.sound);
     if (musicOn && this.cache.audio.exists('music_menu')) {
-      this.sound.stopByKey('music_game');
-      this.sound.stopByKey('music_win');
-      this.sound.stopByKey('music_gameover');
       this.sound.play('music_menu', { loop: true, volume: 0.7 });
     }
 
-    // Браузер может блокировать автовоспроизведение до первого взаимодействия — по первому тапу пробуем запустить музыку
     const tryStartMusicOnFirstTap = () => {
       if (!getMusicOn() || !this.cache.audio.exists('music_menu')) return;
-      const menuSound = this.sound.get('music_menu');
-      if (menuSound && menuSound.isPlaying) return;
+      if (this.sound.get('music_menu')?.isPlaying) return;
+      stopAllMusic(this.sound);
       this.sound.play('music_menu', { loop: true, volume: 0.7 });
       this.input.off('pointerdown', tryStartMusicOnFirstTap);
     };
@@ -190,11 +188,9 @@ export default class MenuScene extends Phaser.Scene {
       musicBtn.setColor(TEXT_BOTTOM_DARK);
 
       if (!musicOn) {
-        this.sound.stopByKey('music_menu');
-        this.sound.stopByKey('music_game');
-        this.sound.stopByKey('music_win');
-        this.sound.stopByKey('music_gameover');
+        stopAllMusic(this.sound);
       } else if (this.cache.audio.exists('music_menu')) {
+        stopAllMusic(this.sound);
         this.sound.play('music_menu', { loop: true, volume: 0.7 });
       }
     });
@@ -243,25 +239,20 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   shareGame() {
-    const url = typeof window !== 'undefined' && window.location ? window.location.href : '';
-    const text = 'Разбитые сердца — ТАРАСА';
-    const shareUrl = url || 'https://bogdanuz.github.io/broken-hearts/';
-
     if (window.Telegram?.WebApp?.openLink) {
-      const tgShare = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+      const tgShare = `https://t.me/share/url?url=${encodeURIComponent(SHARE_BOT_URL)}&text=${encodeURIComponent('Мини-игра о паре, которой не бывать.')}`;
       window.Telegram.WebApp.openLink(tgShare);
       return;
     }
     if (navigator.share) {
       navigator.share({
         title: 'Разбитые сердца',
-        text,
-        url: shareUrl,
+        text: SHARE_MESSAGE,
       }).catch(() => {});
       return;
     }
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(shareUrl).then(() => {
+      navigator.clipboard.writeText(SHARE_MESSAGE).then(() => {
         this.showShareFeedback();
       }).catch(() => {});
     }
